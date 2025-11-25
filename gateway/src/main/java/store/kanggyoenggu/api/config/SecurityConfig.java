@@ -5,42 +5,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import store.kanggyoenggu.api.service.JwtService;
 
+/**
+ * Gateway Security 설정
+ * - 모든 요청 허용 (인증/인가는 각 서비스에서 처리)
+ * - CSRF 비활성화 (Stateless Gateway)
+ */
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
-
-    private final JwtService jwtService;
-
-    public SecurityConfig(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(
-                                "/oauth2/**",
-                                "/login/**",
-                                "/docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs",
-                                "/api-docs/**",
-                                "/webjars/**",
-                                "/actuator/**",
-                                "/api/auth/kakao/**",
-                                "/api/auth/me",
-                                "/api/auth/logout")
-                        .permitAll()
-                        .anyExchange().authenticated())
-                .oauth2Login(oauth2 -> oauth2
-                        .authenticationSuccessHandler(new CustomOAuth2SuccessHandler(jwtService))
-                        .authenticationFailureHandler(new CustomOAuth2FailureHandler()));
+                        .anyExchange().permitAll()); // 모든 요청 허용 (각 서비스에서 인증 처리)
 
         return http.build();
     }

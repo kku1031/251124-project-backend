@@ -11,6 +11,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	
+	// Spring Cloud LoadBalancer (SimpleDiscoveryClient 포함)
+	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+	
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'

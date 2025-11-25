@@ -9,3 +9,37 @@ spring:
 
 server:
   port: 8081
+
+# 카카오 OAuth2 설정
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/api/auth/kakao/callback}
+  authorization-uri: https://kauth.kakao.com/oauth/authorize
+  token-uri: https://kauth.kakao.com/oauth/token
+  user-info-uri: https://kapi.kakao.com/v2/user/me
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# 프론트엔드 설정
+frontend:
+  callback-url: ${FRONTEND_CALLBACK_URL:http://localhost:3000/dashboard}
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# 로깅
+logging:
+  level:
+    root: INFO
+    store.kanggyoenggu: DEBUG
