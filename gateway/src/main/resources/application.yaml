@@ -7,60 +7,25 @@ spring:
       import-check:
         enabled: false
     
-    # SimpleDiscoveryClient를 사용한 정적 서버 리스트
-    discovery:
-      client:
-        simple:
-          instances:
-            # Auth Service 인스턴스 정의
-            auth-service:
-              - uri: ${AUTH_SERVICE_URL:http://authservice:8081}
-                instance-id: auth-service-1
-                metadata:
-                  version: v1
-                  zone: local
-              # 추가 인스턴스 예시 (필요시 주석 해제)
-              # - uri: http://localhost:8091
-              #   instance-id: auth-service-2
-              #   metadata:
-              #     version: v1
-              #     zone: local
-            
-            # User Service 인스턴스 정의
-            user-service:
-              - uri: ${USER_SERVICE_URL:http://userservice:8082}
-                instance-id: user-service-1
-                metadata:
-                  version: v1
-                  zone: local
-    
-    # LoadBalancer 설정
-    loadbalancer:
-      enabled: true
-      # Round Robin 전략 사용 (기본값)
-      configurations: simple
-    
     gateway:
       routes:
-        # OAuth2 카카오 콜백 라우팅 (Gateway 자체 처리)
-        - id: oauth2-kakao-callback
-          uri: http://localhost:8080
-          predicates:
-            - Path=/oauth2/kakao/callback
-          filters:
-            - RewritePath=/oauth2/kakao/callback, /login/oauth2/code/kakao
-        
-        # Auth Service 라우팅 (SimpleDiscoveryClient로 로드밸런싱)
+        # Auth Service 라우팅
         - id: auth-service
-          uri: lb://auth-service
+          uri: http://auth-service:8081
           predicates:
-            - Path=/api/auth/kakao/**
+            - Path=/auth/**
         
-        # User Service 라우팅 (향후 확장)
-        - id: user-service
-          uri: lb://user-service
+        # OAuth2 콜백 라우팅 (카카오 등 OAuth 제공자의 콜백 URL 처리)
+        - id: oauth2-callback
+          uri: http://auth-service:8081
           predicates:
-            - Path=/api/user/**
+            - Path=/oauth2/**
+        
+        # User Service 라우팅
+        - id: user-service
+          uri: http://user-service:8082
+          predicates:
+            - Path=/user/**  
       
       # CORS 설정
       globalcors:
@@ -78,38 +43,13 @@ spring:
               - "*"
             allowCredentials: true
             maxAge: 3600
-  
-  security:
-    oauth2:
-      client:
-        registration:
-          kakao:
-            client-id: ${KAKAO_REST_API_KEY}
-            client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/oauth2/kakao/callback}
-            client-authentication-method: client_secret_post
-            authorization-grant-type: authorization_code
-            scope:
-              - profile_nickname
-            client-name: Kakao
-        provider:
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
 
 server:
   port: 8080
 
-# JWT 설정
+# JWT 설정 (Auth Service와 동일한 secret 사용)
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000} # 24시간 (밀리초)
-
-# 프론트엔드 설정
-frontend:
-  login-callback-url: ${FRONTEND_CALLBACK_URL:http://localhost:3000/dashboard}
 
 springdoc:
   api-docs:
@@ -119,7 +59,11 @@ springdoc:
     enabled: true
     operations-sorter: method
     tags-sorter: alpha
-    try-it-out-enabled: true
+    use-root-path: false
+    persist-authorization: true
+    show-actuator: false
+    default-flat-param-object: true
+    writer-with-order-by-keys: true
 
 management:
   endpoints:
@@ -137,5 +81,9 @@ logging:
   level:
     root: INFO
     store.kanggyoenggu: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.cloud.loadbalancer: DEBUG
+    # Gateway 기본 로그는 INFO로 설정 (메트릭 로그 줄이기)
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.loadbalancer: INFO
+    # Micrometer 메트릭 로그는 WARN으로 설정 (상세 로그 숨김)
+    io.micrometer: WARN
+    io.micrometer.core.instrument: WARN

@@ -26,7 +26,9 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient, Reactor 사용
+	
+	// WebClient만 사용 (HTTP 클라이언트로만 사용, WebFlux 서버는 사용 안함)
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
